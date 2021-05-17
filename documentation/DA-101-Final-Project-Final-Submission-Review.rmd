@@ -1,0 +1,126 @@
+Holden von Summer
+DA 101
+Dr. Lavin
+May 17th, 2021
+Final Project
+
+What College Major is the Most Stable
+
+__Introduction__: 
+  The most common question that any college student is asked is what their major is at school is.Answering that question is easy, but deciding what major to study is a very important decision for college and university students. Their choice of major will determine several of the classes they take and in turn much of their college experience. Choosing a major is like selecting a destination in a GPS for students, its like a guide for them. I choose my major because of a class I took that I enjoyed and that I did well in based off of my test grades and it is a decision that I am happy about. I couldn't help but wonder what college major is actually the best for students. So I decided to answer that question to the best of my ability by alyzing data. 
+	I will be exploring 3 different data sets in my investigation. Interstingly they were very difficult to find online. The first one is titled "tabn324.10,"[^Postsecondary doctor's - dataset by nces. (2017, January 10). Retrieved March 26, 2021, from https://data.world/nces/postsecondary-doctors] though I call it "degrees_by_study_field1970_2015.csv." This is a data set that includes how many students across the U.S. graduated with certain degrees by the hundred thousand from 1970 to 2015. I choose it so I could study the popularity of certain study fields. The next data set was titled "degrees-that-pay-back.csv." [^Journal, T. W. S. (2017, April 29). Where it Pays to Attend College. Kaggle. https://www.kaggle.com/wsj/college-salaries.] This is a survey that conducted a collection of how large the salaries of people in certain fields are. My third data set, and largest one, was titled "college-major/grad-students.csv," [^Cassleman, B. (2014, September 11). fivethirtyeight/data. GitHub. https://github.com/fivethirtyeight/data/blob/master/college-majors/grad-students.csv.] thought I just titled it "fivethirtyeight_recent_grada_2014.csv" and it is a dataeset that encompasses all kinds of things but I primarily used it to study unemployment of various degrees and jobs that come afterwards. I choose these three data sets because I thought that they would be the most useful in determining what the college major leads to the most stable employment after college.
+	
+__Ethical Considerations__: 
+  There is a unique aspect to humanity and the world at large called the "Rule of Unintended Consequences." A simple example is somebody raising the price on deer meat intending to give people more buck for their bang, pun intended, and it causes the local deer population to go extinct. I want to simply answer the question of the most stable college major because I was curious and I hope it does not make someone choose a study field that they hate. My ethical considerations were primarily focused on how my findings could affect the decisions of future students. I do not think that the data sets I choose violate anyone's private information or expose any secret that previously unannounced. The values for the data in my opinion actually make sense when considered properly. I was concerned about how my research could influence the decisions of other students should this work be published. I think it is important to select a degree of study in life that is a combination of being good at as well as enjoyable. The original question I was going to select was "what college major makes adults the happiest?" I found out that later it was an impossibility to research that without assumptions that data either has a hard time supporting or it is impossible for it to do so.  Furthermore, I am completely aware of the fact that choosing a certain major does not guarantee nor bind somebody to a certain list of jobs later in life. Somebody could be an economics major but became a farmer after graduating or through a switch in careers. The same goes for being in school itself because it is possible for students to switch majors in their college careers. 
+  
+__Data Explanation and Exploration__:
+```{r setup}
+library(tidyverse)
+library(dplyr)
+salaries <- read_csv('Data/degrees_that_pay_back.csv')
+salaries[] <- lapply(salaries, gsub, pattern='\\$', replacement='')
+salaries[] <- lapply(salaries, gsub, pattern=',', replacement='')
+salaries <- mutate_at(salaries, vars(-undergraduate_major), as.integer)
+salaries <- mutate(salaries, undergraduate_major = tolower(undergraduate_major)) %>%
+  mutate(undergraduate_major = str_replace_all(undergraduate_major, " ", "_"))
+degrees <- read_csv('Data/degrees_by_study_field_1970_2015.csv')
+degrees <- filter(degrees, Field_of_study != 'Total')
+employment <- read_csv('Data/fivethirtyeight_recent_grads_2014.csv')
+employment <- employment %>% 
+  select(-rank) %>%
+  select(-major_code)
+```
+
+```{r}
+degrees_popular_alltime <- degrees %>% mutate(total=rowSums(select_if(., is.numeric)))
+#degrees_popular_alltime <- arrange(degrees_popular_alltime, desc(total))
+#ggplot(degrees_popular_alltime[1:5,], aes(x=Field_of_study, y=total)) + geom_bar(stat="identity") + labs(title = 'Most Popular Degree of all time')
+degrees_popular_2014_15 <- arrange(degrees, desc(`2013_14`))
+ggplot(degrees_popular_2014_15[1:6,], aes(x=Field_of_study, y=`2013_14`)) + geom_bar(stat="identity") + labs(title = 'Most Popular Degree 2013-2014')
+```
+This is the chart where I determine what is the most popular field of study as of 2013-2014 class across the country. The totals are 1=100,000
+
+Summary of a single column, then do a filter that says everyhting less than is taken out. Maybe use group by
+
+```{r} 
+employment_mean_filtered_totals <- employment %>% 
+  group_by(major_category) %>%
+  summarise(field=n(), average = mean(unemployment_rate), comparison = n()*mean(unemployment_rate)) %>%
+  arrange(desc(average))
+employment_filtered_listed <- employment_mean_filtered_totals[17:12,]
+employment_filtered_listed
+```
+
+This table is relatively simple, these are the top 7 field of study to take based off of the average unemployment rate of all the existing entries of that study under the same name. The field column counts the number of times that category exists, the average column is the average unemployment rate, and finally the comparison column is the field and average column multiplied together. It is to try and account for the fact that some field of study occur more times than others. For instance it is hard to compare the unemployment average of 29 engineering jobs to the 16 education jobs in the data set.
+
+From these two data sets I have found three common fields of study that are very popular with students and have a low unemployment rate. Those three fields of study are biology, education, and engineering. There are some difficult things between these data sets because several of them do not have the exact same names for each major field of study. I had to edit some aspect of them by hand in the excel sheets. Furthermore only two data sets are from the 2014 graduating class, the one that is not, the data sheet about salaries is from 2017 while the other two sets of data have information from the 2014 graduating class. 
+
+__Statistical Analysis and Interpretation__:
+Provide at least two distinct statistical models (for example; multivariate regression and/or t-test) that you interpret correctly and fully in the text. Report your results in a polished table (kable).
+
+Provide at least three polished visuals that specifically support and validate the model(s) you have developed (e.g., residual and regression line/scatter, histogram showing normality of data or residuals, etc.), or help to communicate your main result. Visuals should have captions and be referred to clearly in your text, and they should not all be the same (e.g., not three scatter plots).
+Text should fully explain what you show and your findings, to someone who is unfamiliar with your data, code, and models, in terms of the data and in plain language.
+
+T-test of all the salaries in order to compare them.
+```{r}
+salaries_10th <- select(salaries, undergraduate_major, midcareer_10th_percentile_salary) %>%
+  mutate('salary_percentile' = '10')
+names(salaries_10th) [2] <- 'midcareer_salaries'
+salaries_25th <- select(salaries, undergraduate_major, midcareer_25th_percentile_salary) %>%
+  mutate('salary_percentile' = '25')
+names(salaries_25th) [2] <- 'midcareer_salaries'
+salaries_50th <- select(salaries, undergraduate_major, midcareer_50th_percentile_salary) %>%
+  mutate('salary_percentile' = '50')
+names(salaries_50th) [2] <- 'midcareer_salaries'
+salaries_75th <- select(salaries, undergraduate_major, midcareer_75th_percentile_salary) %>%
+  mutate('salary_percentile' = '75')
+names(salaries_75th) [2] <- 'midcareer_salaries'
+salaries_90th <- select(salaries, undergraduate_major, midcareer_90th_percentile_salary) %>%
+  mutate('salary_percentile' = '90')
+names(salaries_90th) [2] <- 'midcareer_salaries'
+salaries_scatter <- rbind(salaries_10th, salaries_25th, salaries_50th, salaries_75th, salaries_90th)
+salaries_scatter <- salaries_scatter[order(salaries_scatter$undergraduate_major),]
+salaries_scatter$undergraduate_major <- as.factor(salaries_scatter$undergraduate_major)
+```
+
+```{r}
+salaries_scatter_focusMajors1 <- filter(salaries_scatter, grepl('biology|education|aerospace_engineering|chemical_engineering|civil_engineering|computer_engineering|industrial_engineering|mechanical_engineering', undergraduate_major))
+shapiro.test(salaries_scatter_focusMajors1$midcareer_salaries)
+#t.test(salaries_scatter_focusMajors1$midcareer_salaries, mu=27,210)
+```
+As you can see from this Shapiro-wilk test and the following t.test comparing the salaries of the specific study fields I have selected you can see a statistical analysis of the salary data I collected. From the shapiro-wilk test you can see that the the W values is close to one which is what we want. That means that the data is random and not falsely created. Furthermore I wanted to see if the average salary across all percentiles and fields met the standard of living across the U.S. I looked up that value, $27,210 a year online across the entire country so it is significantly skewed. Even though for some reason it will not work I am very confident that the recquirements would be met.
+```{r}
+ggplot(salaries_scatter_focusMajors1) + geom_point(aes(x = salary_percentile, y = midcareer_salaries)) + geom_line(aes(x = salary_percentile, y = midcareer_salaries, color = undergraduate_major, group = undergraduate_major))
+```
+This is a graph that I created to display the salaries of each major study according to the data I collected. The salaries y-axis are not to any scale, the are genuinely 1 to $1, the x-axis however is based off of percentiles. For instance, 25 means that 25% of the surveyed people make that much money or less and the same principle applies to all of the other points. I filtered the information so It would only include the majors that I found prior, those being biology, education, and engineering. Unfortunately as you can see there was not one, but six different fields of engineering in the data set so I decided to include them all. However you can clearly see that both the biology and the education fields of study pay significantly less than most engineering fields by percentile.
+```{R}
+salaries_scatter_focusMajors2 <- filter(salaries_scatter, grepl('aerospace_engineering|chemical_engineering|civil_engineering|computer_engineering|industrial_engineering|mechanical_engineering', undergraduate_major))
+
+ggplot(data=salaries_scatter_focusMajors2, aes(x = salary_percentile, y = midcareer_salaries, color = undergraduate_major)) +
+  geom_point() +
+  geom_smooth(method ="lm")
+```
+As you can see this "line of best fit" attempt that is meant to display the average salary of someone who studies engineering in comparison to many different occupations later in life. As you can see it is very promising, averaging about $30,000 from just the 10th percentile.
+
+```{R}
+employment_focusMajor1 <- filter(employment, grepl('engineering', major_category))
+employment_focusMajor1 <- arrange(employment_focusMajor1, desc(`total`))
+ggplot(employment_focusMajor1[1:6,], aes(x=major, y=total)) + geom_col()
+```
+
+This is a bar plot that I create to display the 6 studies of engineering with the largest total population of workers in it. It is clear the the most stable occupation for students to study for their future is engineering and I wanted to analyze overall employment totals. I want to analyze which specifc engineering sector has the most people employed because that will allow me to observe that there is a need for many people in that occupation to exist. It also does mean that is a very popular occupation amoungst engineers but that is inevitable.
+```{r}
+employment_focusMajor2 <- filter(employment_focusMajor1, grepl('architecture|civil_engineering|computer_engineering|electrical_engineering|general_engineering|mechanical_engineering', major))
+ggplot(employment_focusMajor2, aes(x=men, y=women, color=major)) + geom_jitter() + geom_text(aes(label = major), check_overlap = TRUE, vjust=1.5)
+```
+
+  This is me observing a more liberalistic side to me inquiry. I wanted to compare the ratio of male to female in these occupations because that is an important indicator for stable employment for females. I organized them as coordinates here because it seemed like the best way to see what occupation was the best fit to a 45 degree angle line from the origin. The closest matches to 
+
+__Conclusions__: 
+  After consulting all of my data and narrowing down options I have determine that the two most stable engineering fields for both genders to enter is either mechanical or computer engineering. Mecahnical and computer engineering are both have a relatively balanced male to female ratio, the salaries by percentile and the overall unemployment in comparison to all other possible fields of study. These two possible occupations exist on all of the data observations I have made in my investigation and I think that they are the best possible choice for someone to study if they are looking for a stable job assuming they have the skills and intelligence to have such an occupation.
+  I am fairly confident in my findings and I believe that the process of narrowing down options is very logical. First I examined the unemployment rates which determines how likely it is that someone will have a job continuously. Next I examined the salaries which allowed me to determine what job pays te best which is important because having an job that doesn't pay enough is pointless to have it cannot support the worker. Last I examined the male to female ratio of employees because I wanted to make sure that this would not be a something dominated by males. I wanted to make sure that it would be an occupation where females would not be excluded from or let go with less hesitation. This investigation answered my question as well as I hoped and I now seeing the power or analyzing data even clearer. 
+  
+### Project Reflections
+  I am personally decently satisfied with my work on this project. I have never done a project like this before so I had to think long and hard about how to do it. I choose a question that was important to me and that helped me know what to look for with my research. A rule that I choose that I now regret was selecting a data set for every research purpose I had. I thought that was what I needed to to but in hindsight I recall only needed my 'fivethirtyeight' data set because it had details about salaries and about how many people had such a degree.
+  What I think was very effective with my data visualizations was my logic basis of the project. I knew that it would be close to impossible to check every single college major for its attributes so I designed a a road map for narrowing down the best possible choices. I had to modify it a a few times, such as when I got project plan and rubriv criteria, but I think I did a good job with sticking to my plan of narrowing down options.
+  What I wish I did better was that I found another data set that represented the effect that certain jobs have on a person. I am referring to what happens to the social like of workers or to their overall health. Something that is important in life is making sure that your job doesn't make it such that you are in danger getting hurt. I think that this data could be collected by having people anonymously submit BMI data, or have then undertake a psychological questionnaire to determine their state of mind. This would help me identify jobs that are dangerous and it would help employers monitor the status of their employees.
