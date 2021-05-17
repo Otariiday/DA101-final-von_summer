@@ -1,3 +1,5 @@
+PLEASE READ. if you download my data and my RMD. Please place the RMD file in 1 folder, and then made a sub folder titled 'Data' and put all of the data sets in it. If you do that you will not have to edit the code at all. However, if you want to avoid that simply delete 'Data/' in chunk 1 of the code.
+
 # DA 101 Final Project Assignment
 
 ## Spring 2021
